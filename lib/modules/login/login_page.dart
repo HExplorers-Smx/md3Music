@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:material_ui/material_ui.dart';
 import 'package:m3e_core/m3e_core.dart';
+import '../../core/theme/visual_style_widgets.dart';
+import '../../core/theme/visual_style_theme.dart';
 import 'package:provider/provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/kugou_provider.dart';
@@ -308,69 +310,73 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final tokens = VisualTokens.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('登录酷狗音乐')),
+      appBar: AppBar(title: const Text('登录'), centerTitle: false),
       body: ContentWidth(
-        child: Center(
+        child: SafeArea(
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Tab 切换：只放 label 不放 icon —— 四个「图标+文字」在 360dp
-                // 窄屏会溢出成横向滚动，纯文字约 256dp 可一屏放下。
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
-                  child: M3EToggleButtonGroup(
-                    actions: const [
-                      M3EToggleButtonGroupAction(label: Text('酷狗')),
-                      M3EToggleButtonGroupAction(label: Text('手机')),
-                      M3EToggleButtonGroupAction(label: Text('微信')),
-                      M3EToggleButtonGroupAction(label: Text('QQ')),
-                    ],
-                    selectedIndex: _tabIndex,
-                    onSelectedIndexChanged: (index) {
-                      if (index != null) _switchTab(index);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (_tabIndex == 0) _buildQrTab(colorScheme, textTheme),
-                if (_tabIndex == 1) _buildPhoneTab(colorScheme, textTheme),
-                if (_tabIndex == 2) _buildWxTab(colorScheme, textTheme),
-                if (_tabIndex == 3) _buildQqTab(colorScheme, textTheme),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    _statusText,
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                if (_tabIndex == 3) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      'QQ 扫码受上游风控影响时可能不可用，可改用微信或酷狗扫码',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.8,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        width: 64, height: 64,
+                        decoration: BoxDecoration(
+                          color: cs.primaryContainer,
+                          borderRadius: BorderRadius.circular(tokens.corner),
                         ),
+                        child: Icon(Icons.graphic_eq_rounded,
+                            color: cs.onPrimaryContainer, size: 32),
                       ),
                     ),
-                  ),
-                ],
-              ],
+                    const SizedBox(height: 22),
+                    Text('让音乐继续',
+                      style: tt.headlineMedium?.copyWith(
+                        color: cs.onSurface, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 6),
+                    Text('登录酷狗音乐，找回喜欢的歌曲、歌单和云端收藏',
+                      style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                    const SizedBox(height: 28),
+                    M3EToggleButtonGroup(
+                      actions: const [
+                        M3EToggleButtonGroupAction(label: Text('酷狗')),
+                        M3EToggleButtonGroupAction(label: Text('手机')),
+                        M3EToggleButtonGroupAction(label: Text('微信')),
+                        M3EToggleButtonGroupAction(label: Text('QQ')),
+                      ],
+                      selectedIndex: _tabIndex,
+                      onSelectedIndexChanged: (index) {
+                        if (index != null) _switchTab(index);
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    if (_tabIndex == 0) _buildQrTab(cs, tt),
+                    if (_tabIndex == 1) _buildPhoneTab(cs, tt),
+                    if (_tabIndex == 2) _buildWxTab(cs, tt),
+                    if (_tabIndex == 3) _buildQqTab(cs, tt),
+                    const SizedBox(height: 18),
+                    Text(_statusText,
+                      textAlign: TextAlign.center,
+                      style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                    if (_tabIndex == 3) ...[
+                      const SizedBox(height: 8),
+                      Text('QQ 扫码受上游风控影响时可能不可用，可改用微信或酷狗扫码',
+                        textAlign: TextAlign.center,
+                        style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                    ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -552,13 +558,9 @@ class _LoginPageState extends State<LoginPage>
   }
 
   Widget _loginCard(ColorScheme colorScheme, Widget child) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: SizedBox(width: 280, child: child),
-      ),
+    return VisualSection(
+      padding: const EdgeInsets.all(22),
+      child: SizedBox(width: double.infinity, child: child),
     );
   }
 

@@ -15,6 +15,7 @@ import 'package:dpad/dpad.dart';
 import '../../core/build_flags.dart';
 import '../../core/layout/bottom_chrome_dimens.dart';
 import '../../core/theme/app_dimens.dart';
+import '../../core/theme/visual_style_theme.dart';
 import '../../core/layout/responsive_layout.dart';
 import '../../core/utils/reveal_label.dart';
 import '../../widgets/md3_pull_to_refresh.dart';
@@ -1611,7 +1612,17 @@ class _SectionBlock extends StatelessWidget {
             ],
           ),
         ),
-        child,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          child: Material(
+            color: VisualTokens.of(context).isGlass
+                ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.82)
+                : Theme.of(context).colorScheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
+            clipBehavior: Clip.antiAlias,
+            child: child,
+          ),
+        ),
       ],
     );
   }

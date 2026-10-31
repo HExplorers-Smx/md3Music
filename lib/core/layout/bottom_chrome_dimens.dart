@@ -58,7 +58,7 @@ class BottomChromeDimens {
   /// Material 默认 `NavigationBar` 高 80，本仓压到 44 让底栏在仅图标时更紧凑；
   /// 该值同时进入底栏槽位高（`barHeight + MediaQuery.padding.bottom`），
   /// 因此它决定 body 的可用高度，不只是导航栏自身的外观。
-  static const double navBarIconOnlyHeight = 44.0;
+  static const double navBarIconOnlyHeight = 56.0;
 
   /// 底部导航栏在「显示文字」（alwaysShow / onlyShowSelected）时的高度（dp）。
   ///

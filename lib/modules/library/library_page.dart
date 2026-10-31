@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/build_flags.dart';
 import '../../core/services/folder_picker_service.dart';
 import '../../core/theme/app_dimens.dart';
+import '../../core/theme/visual_style_theme.dart';
 import '../../core/layout/page_title_alignment.dart';
 import '../../core/layout/page_layout.dart';
 import '../../core/layout/tv_fab_focus_bridge.dart';
@@ -278,7 +279,7 @@ class _LibraryPageState extends State<LibraryPage>
           vertical: AppSpacing.sm,
         ),
         border: OutlineInputBorder(
-          borderRadius: AppRadius.xlAll,
+          borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
           borderSide: BorderSide.none,
         ),
         filled: true,

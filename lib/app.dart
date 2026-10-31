@@ -39,6 +39,7 @@ import 'core/services/startup_auto_play.dart';
 import 'core/services/windows_fullscreen.dart';
 import 'core/services/windows_taskbar_sync.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/visual_style_theme.dart';
 import 'core/theme/motion_constants.dart';
 import 'core/utils/artwork_color_extractor.dart';
 import 'core/utils/app_toast.dart';
@@ -847,7 +848,8 @@ class _AppViewState extends State<_AppView> {
       // 启用自定义背景图时，通过 _applyBackgroundOverrides 把主要表面改为透明，
       // 让底层 AppBackgroundLayer 的模糊背景图透出。
       theme: _applyBackgroundOverrides(
-        AppTheme.lightThemeFromSeed(
+        VisualStyleTheme.apply(
+          AppTheme.lightThemeFromSeed(
           themeProvider.effectiveSeedColor,
           fontFamily: fontFamily,
           textColor: themeProvider.customTextColor,
@@ -855,10 +857,13 @@ class _AppViewState extends State<_AppView> {
           labelBehavior: themeProvider.navLabelBehavior,
           predictiveBack: predictiveBack,
         ),
+        themeProvider.visualStyle,
+        ),
         themeProvider,
       ),
       darkTheme: _applyBackgroundOverrides(
-        AppTheme.darkThemeFromSeed(
+        VisualStyleTheme.apply(
+          AppTheme.darkThemeFromSeed(
           themeProvider.effectiveSeedColor,
           useOledBlack: themeProvider.useOledBlack,
           fontFamily: fontFamily,
@@ -866,6 +871,8 @@ class _AppViewState extends State<_AppView> {
           emphasized: themeProvider.emphasizedTypographyEnabled,
           labelBehavior: themeProvider.navLabelBehavior,
           predictiveBack: predictiveBack,
+        ),
+        themeProvider.visualStyle,
         ),
         themeProvider,
       ),

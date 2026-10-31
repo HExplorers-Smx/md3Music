@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/layout/ui_density.dart';
 import '../core/services/custom_font_loader.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/visual_style_mode.dart';
 import '../core/services/windows_default_font.dart';
 import '../data/repositories/settings_repository.dart';
 
@@ -28,6 +29,7 @@ class ThemeProvider extends ChangeNotifier {
   static const String _legacyUiScaleKey = 'ui_scale';
   // 底部导航栏文字显示行为：始终显示 / 仅当前页 / 始终不显示
   static const String _navLabelBehaviorKey = 'nav_label_behavior';
+  static const String _visualStyleKey = 'visual_style_mode';
   static const String _fontSourceKey = 'font_source';
   static const String _customFontPathKey = 'custom_font_path';
   static const String _customTextColorKey = 'custom_text_color';
@@ -52,6 +54,7 @@ class ThemeProvider extends ChangeNotifier {
   static const String _textShadowBlurKey = 'text_shadow_blur';
 
   ThemeMode _themeMode = ThemeMode.system;
+  VisualStyleMode _visualStyle = VisualStyleMode.expressive;
   bool _useDynamicColor = false;
   Color? _systemSeedColor;
   // 封面动态取色：根据当前播放歌曲封面颜色动态改变全局主题色。
@@ -67,7 +70,7 @@ class ThemeProvider extends ChangeNotifier {
       defaultDisplayScaleForPlatform(defaultTargetPlatform);
   // 底部导航栏文字显示行为（默认始终不显示）
   NavigationDestinationLabelBehavior _navLabelBehavior =
-      NavigationDestinationLabelBehavior.alwaysHide;
+      NavigationDestinationLabelBehavior.onlyShowSelected;
   // 字体来源（system / bundled（已废弃，等同 system）/ custom）
   FontSource _fontSource = FontSource.system;
   // 用户选择的字体文件路径（原生端拷贝到 filesDir 后的真实路径）
@@ -100,6 +103,7 @@ class ThemeProvider extends ChangeNotifier {
   bool _emphasizedTypography = true;
 
   ThemeMode get themeMode => _themeMode;
+  VisualStyleMode get visualStyle => _visualStyle;
   bool get useDynamicColor => _useDynamicColor;
   Color? get systemSeedColor => _systemSeedColor;
   bool get useCoverSeedColor => _useCoverSeedColor;
@@ -222,6 +226,7 @@ class ThemeProvider extends ChangeNotifier {
     _loadOledBlack();
     _loadDisplayScale();
     _loadNavLabelBehavior();
+    _loadVisualStyle();
     _loadFontSource();
     _loadCustomTextColor();
     _loadArtistPhotoBackground();
@@ -235,7 +240,7 @@ class ThemeProvider extends ChangeNotifier {
     await Future.wait<void>([
       _loadThemeMode(), _loadDynamicColor(), _loadUseCoverSeedColor(),
       _loadAmStylePlayer(), _loadManualSeedColor(), _loadOledBlack(),
-      _loadDisplayScale(), _loadNavLabelBehavior(), _loadFontSource(),
+      _loadDisplayScale(), _loadNavLabelBehavior(), _loadVisualStyle(), _loadFontSource(),
       _loadCustomTextColor(), _loadArtistPhotoBackground(),
       _loadLyricDoubleTapToJump(), _loadBackgroundImage(),
       _loadAmPlayerBlur(), _loadEmphasizedTypography(),
@@ -248,7 +253,7 @@ class ThemeProvider extends ChangeNotifier {
     await windowsSettingsReady;
     _themeMode = ThemeMode.system;
     _manualSeedColor = null;
-    _navLabelBehavior = NavigationDestinationLabelBehavior.alwaysHide;
+    _navLabelBehavior = NavigationDestinationLabelBehavior.onlyShowSelected;
     _loadedCustomFontFamily = null;
     _backgroundSeedColor = null;
     _amPlayerBlur = 30.0;
@@ -562,6 +567,20 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_navLabelBehaviorKey, value.name);
+  }
+
+  Future<void> _loadVisualStyle() async {
+    final prefs = await SharedPreferences.getInstance();
+    _visualStyle = VisualStyleMode.parse(prefs.getString(_visualStyleKey));
+    notifyListeners();
+  }
+
+  Future<void> setVisualStyle(VisualStyleMode value) async {
+    if (_visualStyle == value) return;
+    _visualStyle = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_visualStyleKey, value.name);
   }
 
   void toggleTheme() {

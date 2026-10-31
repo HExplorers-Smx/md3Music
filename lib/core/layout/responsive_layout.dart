@@ -9,6 +9,8 @@ import 'bottom_chrome_dimens.dart';
 import 'bottom_chrome_scope.dart';
 import 'bottom_chrome_sink.dart';
 import '../theme/motion_constants.dart';
+import '../theme/visual_style_theme.dart';
+import 'package:flutter_miuix/miuix.dart' as miuix;
 import 'tv_nav_focus_bridge.dart';
 
 import '../utils/app_haptics.dart';
@@ -1164,7 +1166,9 @@ class _CapsuleBounceState extends State<_CapsuleBounce>
                 decoration: showCapsule
                     ? ShapeDecoration(
                         color: colorScheme.secondaryContainer,
-                        shape: const StadiumBorder(),
+                        shape: VisualTokens.of(context).isGlass
+                            ? const miuix.MiuixSquircleBorder(cornerRadius: 24)
+                            : const StadiumBorder(),
                       )
                     : null,
               ),

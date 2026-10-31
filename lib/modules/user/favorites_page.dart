@@ -15,6 +15,7 @@ import '../../core/layout/adaptive_navigator.dart';
 import '../../core/layout/page_title_alignment.dart';
 import '../../core/remote/tv_reorder.dart';
 import '../../core/theme/app_dimens.dart';
+import '../../core/theme/visual_style_theme.dart';
 import '../../core/utils/app_text_context_menu.dart';
 import '../../core/utils/app_toast.dart';
 import '../../core/utils/tab_snap_physics.dart';
@@ -1454,9 +1455,12 @@ class _FavoritesPageState extends State<FavoritesPage>
         onLongPress: longPressAction,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-          color: isSelected
-              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-              : null,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(VisualTokens.of(context).rowCorner),
+            color: isSelected
+                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                : Colors.transparent,
+          ),
           child: Row(
             children: [
               if (_isManaging)
@@ -1628,9 +1632,12 @@ class _FavoritesPageState extends State<FavoritesPage>
             },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-        color: isSelected
-            ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-            : null,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(VisualTokens.of(context).rowCorner),
+          color: isSelected
+              ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+              : Colors.transparent,
+        ),
         child: Row(
           children: [
             if (_isManaging)

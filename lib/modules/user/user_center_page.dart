@@ -12,6 +12,8 @@ import '../../widgets/md3_pull_to_refresh.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_dimens.dart';
+import '../../core/theme/visual_style_theme.dart';
+import '../../core/theme/visual_style_widgets.dart';
 import '../../core/utils/app_toast.dart';
 import '../../data/models/kugou_account.dart';
 import '../../providers/favorites_provider.dart';
@@ -209,8 +211,10 @@ class _UserCenterPageState extends State<UserCenterPage> {
   Widget _buildNotLoggedIn(ColorScheme cs, TextTheme tt) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: Column(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: VisualSection(
+          child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -240,6 +244,7 @@ class _UserCenterPageState extends State<UserCenterPage> {
               ).push(MaterialPageRoute(builder: (_) => const LoginPage())),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -1105,7 +1110,7 @@ class _UserCenterPageState extends State<UserCenterPage> {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         decoration: BoxDecoration(
-          borderRadius: AppRadius.lgAll,
+          borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
           // 实心纯色圆角矩形：不描边
           color: cs.surfaceContainer,
         ),

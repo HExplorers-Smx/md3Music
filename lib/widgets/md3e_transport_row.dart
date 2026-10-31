@@ -2,6 +2,8 @@ import 'package:dpad/dpad.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../core/build_flags.dart';
+import '../core/theme/visual_style_theme.dart';
+import 'package:flutter_miuix/miuix.dart' as miuix;
 import '../core/remote/tv_hint_bar.dart';
 import '../core/remote/tv_player_back_focus.dart';
 
@@ -1166,10 +1168,13 @@ class _MD3ETransportRowState extends State<MD3ETransportRow>
                 height: currentHeight,
                 child: Material(
                   color: backgroundColor,
-                  // 圆角矩形：圆角 8dp，比胶囊形更克制、更现代
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: VisualTokens.of(context).isGlass
+                      ? const miuix.MiuixSquircleBorder(cornerRadius: 26)
+                      : RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              VisualTokens.of(context).mode.name == 'material3'
+                                  ? 12 : 36),
+                        ),
                   clipBehavior: Clip.antiAlias,
                   child: Center(
                     child: Transform.translate(

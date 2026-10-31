@@ -15,6 +15,7 @@ import '../../core/layout/adaptive_content_grid.dart';
 import '../../core/remote/tv_card_focus.dart';
 import '../../core/remote/tv_scroll_region.dart';
 import '../../core/theme/app_dimens.dart';
+import '../../core/theme/visual_style_theme.dart';
 import '../../core/utils/app_text_context_menu.dart';
 import '../../core/utils/app_toast.dart';
 import '../../core/utils/tab_snap_physics.dart';
@@ -249,7 +250,10 @@ class _SearchPageState extends State<SearchPage>
                   backgroundColor: WidgetStatePropertyAll(
                     colorScheme.surfaceContainerHighest,
                   ),
-                  shape: const WidgetStatePropertyAll(StadiumBorder()),
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(
+                        VisualTokens.of(context).corner)),
+                  ),
                   hintText: '搜索歌曲、歌手、专辑',
                   hintStyle: WidgetStatePropertyAll(
                     Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -1311,7 +1315,7 @@ class _SearchAlbumCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final card = ClipRRect(
-      borderRadius: AppRadius.mdAll,
+      borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
       clipBehavior: Clip.antiAlias,
       child: Material(
         color: colorScheme.surfaceContainerLow,
@@ -1386,7 +1390,7 @@ class _SearchAlbumCard extends StatelessWidget {
     // 仅上两角。hero 圆角与之对齐，飞行起点才与静止封面逐像素重合。
     return PlaylistCoverHero(
       tag: heroTag!,
-      radius: const BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
+      radius: BorderRadius.vertical(top: Radius.circular(VisualTokens.of(context).corner)),
       child: image,
     );
   }

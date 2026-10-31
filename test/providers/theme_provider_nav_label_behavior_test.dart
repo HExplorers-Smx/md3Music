@@ -10,7 +10,7 @@ import 'package:md3music/providers/theme_provider.dart';
 /// `_loadNavLabelBehavior` / `setNavLabelBehavior`）：
 /// - 读：用**不做类型转换**的 `prefs.get()` 读原始值——String 走 name 匹配，Int 走
 ///   index 迁移（命中即**就地覆写为 name**，同 key setString，类型随之变 String），
-///   其余（无值 / 越界 / 无法匹配）保持默认 alwaysHide。
+///   其余（无值 / 越界 / 无法匹配）保持默认 onlyShowSelected。
 ///   ⚠️ `getString` 对 Int 存量、`getInt` 对 String 存量都会**抛类型转换异常**（不是
 ///   返回 null），故本文件断言一律用 `get()` 读原始值再判型，不能指望「另一形态读回 null」。
 /// - 写：`setNavLabelBehavior` 只写 name，且与当前值同值时直接返回不落盘。
@@ -34,10 +34,10 @@ void main() {
   });
 
   group('三档读写与默认值', () {
-    test('空存量默认 alwaysHide（始终不显示），且载入不反写持久化', () async {
+    test('空存量默认 onlyShowSelected（仅当前页），且载入不反写持久化', () async {
       final tp = ThemeProvider();
       await settle();
-      expect(tp.navLabelBehavior, NavigationDestinationLabelBehavior.alwaysHide);
+      expect(tp.navLabelBehavior, NavigationDestinationLabelBehavior.onlyShowSelected);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString(key), isNull, reason: '默认值不写入存量');
       expect(prefs.getInt(key), isNull);
@@ -132,12 +132,12 @@ void main() {
       expect(prefs.get(key), isA<String>());
     });
 
-    test('越界 index（99 / -1）：保持默认 alwaysHide，不崩溃也不覆写', () async {
+    test('越界 index（99 / -1）：保持默认 onlyShowSelected，不崩溃也不覆写', () async {
       for (final bad in <int>[99, -1]) {
         SharedPreferences.setMockInitialValues(<String, Object>{key: bad});
         final tp = ThemeProvider();
         await settle();
-        expect(tp.navLabelBehavior, NavigationDestinationLabelBehavior.alwaysHide,
+        expect(tp.navLabelBehavior, NavigationDestinationLabelBehavior.onlyShowSelected,
             reason: 'index 越界不解析（值域校验在 0..values.length-1）');
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getInt(key), bad, reason: '越界存量原样保留，不被误迁移覆写');
@@ -145,13 +145,13 @@ void main() {
       }
     });
 
-    test('非法 name 字符串（乱值）：保持默认 alwaysHide，不崩溃也不覆写', () async {
+    test('非法 name 字符串（乱值）：保持默认 onlyShowSelected，不崩溃也不覆写', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{
         key: 'bogusBehavior',
       });
       final tp = ThemeProvider();
       await settle();
-      expect(tp.navLabelBehavior, NavigationDestinationLabelBehavior.alwaysHide);
+      expect(tp.navLabelBehavior, NavigationDestinationLabelBehavior.onlyShowSelected);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString(key), 'bogusBehavior', reason: 'name 分支匹配不到即原样保留');
       expect(prefs.get(key), isA<String>());

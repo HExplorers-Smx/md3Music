@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../core/build_flags.dart';
+import '../core/theme/visual_style_theme.dart';
 import '../core/remote/tv_reorder.dart';
 import '../core/utils/app_haptics.dart';
 import '../core/utils/app_toast.dart';
@@ -842,7 +843,7 @@ class PlayerPlaylistViewState extends State<PlayerPlaylistView> {
   }) {
     final selected = _selectedIds.contains(song.id);
     final artwork = ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(VisualTokens.of(context).coverCorner),
       child: SizedBox(
         width: 44,
         height: 44,

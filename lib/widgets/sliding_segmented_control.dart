@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../core/build_flags.dart';
 import '../core/theme/app_theme.dart';
+import '../core/theme/visual_style_theme.dart';
 import '../core/theme/motion_constants.dart';
 import '../core/utils/app_haptics.dart';
 
@@ -115,7 +116,9 @@ class _SlidingSegmentedControlState extends State<SlidingSegmentedControl> {
               onHorizontalDragCancel: _endDrag,
               child: Material(
                 color: cs.surfaceContainerHigh,
-                shape: const StadiumBorder(),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
+                ),
                 // 不裁，否则指示器的投影会被切掉，浮起感没了。
                 clipBehavior: Clip.none,
                 child: Stack(

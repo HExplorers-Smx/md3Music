@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/remote/tv_card_focus.dart';
 import '../../core/remote/tv_scroll_region.dart';
 import '../../core/theme/app_dimens.dart';
+import '../../core/theme/visual_style_widgets.dart';
 import '../../providers/kugou_provider.dart';
 import '../../services/kugou_api/kugou_models.dart';
 import 'search_section_header.dart';
@@ -194,8 +195,8 @@ class _Shell extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
-          child: Material(
-            color: Colors.transparent,
+          child: VisualSection(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: child,
           ),
         ),

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/remote/tv_card_focus.dart';
 import '../../core/utils/app_toast.dart';
+import '../../core/theme/visual_style_theme.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/kugou_provider.dart';
 import '../../providers/player_provider.dart';
@@ -374,7 +375,7 @@ class _PersonalFmSectionState extends State<PersonalFmSection> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Material(
         color: _containerColor(cs),
-        borderRadius: BorderRadius.circular(_kCardRadius),
+        borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => Navigator.of(
@@ -443,7 +444,7 @@ class _PersonalFmSectionState extends State<PersonalFmSection> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Material(
         color: _drawerColor(cs),
-        borderRadius: BorderRadius.circular(_kCardRadius),
+        borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -454,7 +455,7 @@ class _PersonalFmSectionState extends State<PersonalFmSection> {
               // 别让 M3 的高度着色再往面板底色上叠一层。
               surfaceTintColor: Colors.transparent,
               elevation: 1,
-              borderRadius: BorderRadius.circular(_kCardRadius),
+              borderRadius: BorderRadius.circular(VisualTokens.of(context).corner),
               child: Padding(
                 padding: const EdgeInsets.all(_kPanelPadding),
                 child: _buildNowPlayingRow(

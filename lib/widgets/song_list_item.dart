@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../core/build_flags.dart';
+import '../core/theme/visual_style_theme.dart';
 import '../core/remote/tv_menu_key_shortcuts.dart';
 import '../core/services/lyrico_editor.dart';
 import '../core/utils/app_haptics.dart';
@@ -461,7 +462,7 @@ class SongListItem extends StatelessWidget {
                 fallbackFilePath: song.localPath,
                 songId: song.id,
                 size: imgSize,
-                borderRadius: 8,
+                borderRadius: VisualTokens.of(context).coverCorner,
               ),
             const SizedBox(width: 12),
 

@@ -49,6 +49,7 @@ import '../../widgets/player_seek_bar.dart';
 import '../../widgets/tv_dropdown_menu.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/visual_style_mode.dart';
 import '../../core/theme/motion_constants.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/song_match_repository.dart';
@@ -2793,7 +2794,23 @@ class _SettingsPageState extends State<SettingsPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildGroupLabel('主题模式', colorScheme, first: true),
+        _buildGroupLabel('界面风格', colorScheme, first: true),
+        ...VisualStyleMode.values.map((style) => ListTile(
+          leading: Icon(
+            switch (style) {
+              VisualStyleMode.material3 => Icons.dashboard_outlined,
+              VisualStyleMode.expressive => Icons.auto_awesome,
+              VisualStyleMode.miuixGlass => Icons.blur_on,
+            },
+          ),
+          title: Text(style.label),
+          subtitle: Text(style.description),
+          trailing: context.watch<ThemeProvider>().visualStyle == style
+              ? Icon(Icons.check_circle, color: colorScheme.primary)
+              : const Icon(Icons.circle_outlined),
+          onTap: () => context.read<ThemeProvider>().setVisualStyle(style),
+        )),
+        _buildGroupLabel('主题模式', colorScheme),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           // 注意：按钮顺序(浅色/深色/跟随系统)与 ThemeMode.index(system=0,light=1,dark=2)
