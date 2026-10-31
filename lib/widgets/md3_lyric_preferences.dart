@@ -20,7 +20,80 @@ enum Md3LyricFontSource { system, bundled, custom }
 enum Md3LyricDisplayMode { translation, roma }
 
 /// Available native lyric stages. Persisted by name.
-enum Md3LyricStageMode { original, glow, partita }
+enum Md3LyricStageMode {
+  original,
+  glow,
+  partita,
+  fume,
+  cadenza,
+  cappella,
+  tilt,
+  diorama,
+  pendolo,
+  sonnet,
+  lumiere,
+  hanabi,
+  machi,
+  monet,
+  nebbia,
+  claddagh,
+  tempera,
+  still,
+}
+
+/// UI only exposes modes that have native implementations.
+extension Md3LyricStageModeInfo on Md3LyricStageMode {
+  String get label => switch (this) {
+    Md3LyricStageMode.original => '原版歌词',
+    Md3LyricStageMode.glow => '流光',
+    Md3LyricStageMode.partita => '云阶',
+    Md3LyricStageMode.fume => '浮名',
+    Md3LyricStageMode.cadenza => '心象',
+    Md3LyricStageMode.cappella => '群唱',
+    Md3LyricStageMode.tilt => '倾诉',
+    Md3LyricStageMode.diorama => '镜台',
+    Md3LyricStageMode.pendolo => '时计',
+    Md3LyricStageMode.sonnet => '商籁',
+    Md3LyricStageMode.lumiere => '绘光',
+    Md3LyricStageMode.hanabi => '花火',
+    Md3LyricStageMode.machi => '町景',
+    Md3LyricStageMode.monet => '莫奈',
+    Md3LyricStageMode.nebbia => '雾笺',
+    Md3LyricStageMode.claddagh => '回环',
+    Md3LyricStageMode.tempera => '凝彩',
+    Md3LyricStageMode.still => '静止',
+  };
+
+  String get description => switch (this) {
+    Md3LyricStageMode.original => '原有滚动歌词与逐行定位',
+    Md3LyricStageMode.glow => '逐字渐亮与柔和辉光',
+    Md3LyricStageMode.partita => '错落多行与节奏起伏',
+    Md3LyricStageMode.fume => '超大文字与镜头漫游',
+    Md3LyricStageMode.cadenza => '散落文字与中心光环',
+    Md3LyricStageMode.cappella => '交错聊天气泡',
+    Md3LyricStageMode.tilt => '旋转排版与斜向字幕',
+    Md3LyricStageMode.diorama => '分层空间与景深卡片',
+    Md3LyricStageMode.pendolo => '转盘与旋转指针',
+    Md3LyricStageMode.sonnet => '海报边框与动态图文',
+    Md3LyricStageMode.lumiere => '光束与舞台文字',
+    Md3LyricStageMode.hanabi => '彩色字块与粒子焰火',
+    Md3LyricStageMode.machi => '微缩街景与霓虹招牌',
+    Md3LyricStageMode.monet => '画报配色与分栏版式',
+    Md3LyricStageMode.nebbia => '雾窗、水滴与逐字显影',
+    Md3LyricStageMode.claddagh => '椭圆轨道与环绕字形',
+    Md3LyricStageMode.tempera => '双色块面与层叠文字',
+    Md3LyricStageMode.still => '低资源三行静态呈现',
+  };
+
+  bool get isPrimary => switch (this) {
+    Md3LyricStageMode.original ||
+    Md3LyricStageMode.glow ||
+    Md3LyricStageMode.partita ||
+    Md3LyricStageMode.fume ||
+    Md3LyricStageMode.cadenza => true,
+    _ => false,
+  };
+}
 
 /// MD3 风格播放页的歌词显示偏好（字号 + 行间距 + 字体）。
 ///

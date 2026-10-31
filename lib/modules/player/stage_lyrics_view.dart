@@ -7,10 +7,10 @@ import 'package:material_ui/material_ui.dart';
 import '../../widgets/apple_lyrics/models/lyric_line.dart';
 import '../../widgets/md3_lyric_preferences.dart';
 import 'lyrics_view.dart';
+import 'additional_lyric_stages.dart';
 
-// Independent Flutter adaptations of Folia's lyric-stage ideas.
-// No Folia React, PixiJS or Electron sources are embedded.
-// Attribution: docs/folia-lyrics-attribution.md.
+// Native lyric stages share the existing timeline and audio position.
+// Source and license acknowledgements: docs/lyrics-animation-attribution.md.
 class StageLyricsView extends StatelessWidget {
   const StageLyricsView({
     super.key,
@@ -52,7 +52,7 @@ class StageLyricsView extends StatelessWidget {
               doubleTapToJump: doubleTapToJump,
             );
           }
-          return FoliaInspiredLyricStage(
+          return AnimatedLyricStage(
             lines: lines,
             mode: mode,
             position: position,
@@ -129,8 +129,8 @@ class StageTextPlanner {
   }
 }
 
-class FoliaInspiredLyricStage extends StatefulWidget {
-  const FoliaInspiredLyricStage({
+class AnimatedLyricStage extends StatefulWidget {
+  const AnimatedLyricStage({
     super.key,
     required this.lines,
     required this.mode,
@@ -152,11 +152,11 @@ class FoliaInspiredLyricStage extends StatefulWidget {
   final bool doubleTapToJump;
 
   @override
-  State<FoliaInspiredLyricStage> createState() =>
-      _FoliaInspiredLyricStageState();
+  State<AnimatedLyricStage> createState() =>
+      _AnimatedLyricStageState();
 }
 
-class _FoliaInspiredLyricStageState extends State<FoliaInspiredLyricStage>
+class _AnimatedLyricStageState extends State<AnimatedLyricStage>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   Duration? _lastTick;
@@ -172,7 +172,7 @@ class _FoliaInspiredLyricStageState extends State<FoliaInspiredLyricStage>
   }
 
   @override
-  void didUpdateWidget(covariant FoliaInspiredLyricStage oldWidget) {
+  void didUpdateWidget(covariant AnimatedLyricStage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.positionListenable != widget.positionListenable) {
       oldWidget.positionListenable?.removeListener(_readPosition);
@@ -193,7 +193,9 @@ class _FoliaInspiredLyricStageState extends State<FoliaInspiredLyricStage>
   }
 
   void _syncTicker() {
-    if (widget.isPlaying && widget.lines.isNotEmpty) {
+    if (widget.isPlaying &&
+        widget.lines.isNotEmpty &&
+        widget.mode != Md3LyricStageMode.still) {
       if (!_ticker.isActive) {
         _lastTick = null;
         _ticker.start();
@@ -465,9 +467,20 @@ class _FoliaInspiredLyricStageState extends State<FoliaInspiredLyricStage>
                 ),
               ),
               child: SizedBox.expand(
-                child: widget.mode == Md3LyricStageMode.partita
-                    ? _partitaStage(context, index, constraints.maxWidth)
-                    : _glowStage(context, index),
+                child: switch (widget.mode) {
+                  Md3LyricStageMode.glow =>
+                    _glowStage(context, index),
+                  Md3LyricStageMode.partita =>
+                    _partitaStage(context, index, constraints.maxWidth),
+                  _ => AdditionalLyricStages(
+                    mode: widget.mode,
+                    lines: widget.lines,
+                    currentIndex: index,
+                    elapsedMs: _timeMs,
+                    maxWidth: constraints.maxWidth,
+                    maxHeight: constraints.maxHeight,
+                  ),
+                },
               ),
             ),
           );

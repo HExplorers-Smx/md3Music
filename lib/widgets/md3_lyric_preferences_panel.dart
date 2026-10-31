@@ -41,7 +41,7 @@ class Md3LyricPreferencesPanel extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '歌词显示（MD3 风格）',
+                    '歌词显示',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   TextButton(
@@ -54,11 +54,7 @@ class Md3LyricPreferencesPanel extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.auto_awesome_motion_outlined),
                 title: const Text('歌词演出'),
-                subtitle: Text(switch (prefs.stageMode) {
-                  Md3LyricStageMode.original => '原版滚动歌词',
-                  Md3LyricStageMode.glow => '流光 · 逐词光效',
-                  Md3LyricStageMode.partita => '云阶 · 错落排版',
-                }),
+                subtitle: Text(prefs.stageMode.label),
                 trailing: const Icon(Icons.chevron_right, size: 18),
                 onTap: () => _showStagePicker(context, prefs),
               ),
@@ -156,47 +152,66 @@ class Md3LyricPreferencesPanel extends StatelessWidget {
   }
 
   void _showStagePicker(BuildContext context, Md3LyricPreferences prefs) {
+    var expanded = !prefs.stageMode.isPrimary;
     showM3EModalBottomSheet(
       context: context,
       showDragHandle: true,
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('歌词演出', style: Theme.of(ctx).textTheme.titleMedium),
-              ),
+        child: StatefulBuilder(
+          builder: (ctx, update) => ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(ctx).height * 0.75,
             ),
-            for (final mode in Md3LyricStageMode.values)
-              ListTile(
-                leading: Icon(
-                  prefs.stageMode == mode
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                  color: Theme.of(ctx).colorScheme.primary,
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.only(bottom: 16),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                  child: Text('歌词显示方式',
+                      style: Theme.of(ctx).textTheme.titleMedium),
                 ),
-                title: Text(switch (mode) {
-                  Md3LyricStageMode.original => '原版滚动歌词',
-                  Md3LyricStageMode.glow => '流光',
-                  Md3LyricStageMode.partita => '云阶',
-                }),
-                subtitle: Text(switch (mode) {
-                  Md3LyricStageMode.original => '保留原来的滚动与逐行定位',
-                  Md3LyricStageMode.glow => '逐字渐亮、柔和辉光、上下句衔接',
-                  Md3LyricStageMode.partita => '多行错落排版、按原始时间高亮',
-                }),
-                onTap: () {
-                  prefs.setStageMode(mode);
-                  Navigator.of(ctx).pop();
-                },
-              ),
-            const SizedBox(height: 12),
-          ],
+                for (final mode in Md3LyricStageMode.values
+                    .where((mode) => mode.isPrimary))
+                  _stageTile(ctx, prefs, mode),
+                ListTile(
+                  leading: const Icon(Icons.grid_view_rounded),
+                  title: const Text('更多模式'),
+                  trailing: Icon(expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded),
+                  onTap: () => update(() => expanded = !expanded),
+                ),
+                if (expanded)
+                  for (final mode in Md3LyricStageMode.values
+                      .where((mode) => !mode.isPrimary))
+                    _stageTile(ctx, prefs, mode),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _stageTile(
+    BuildContext context,
+    Md3LyricPreferences prefs,
+    Md3LyricStageMode mode,
+  ) {
+    return ListTile(
+      leading: Icon(
+        prefs.stageMode == mode
+            ? Icons.radio_button_checked
+            : Icons.radio_button_unchecked,
+        color: Theme.of(context).colorScheme.primary,
+      ),
+      title: Text(mode.label),
+      subtitle: Text(mode.description),
+      onTap: () {
+        prefs.setStageMode(mode);
+        Navigator.of(context).pop();
+      },
     );
   }
 
