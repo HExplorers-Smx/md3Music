@@ -14,7 +14,7 @@ jobs:
   android:
     name: Android UI validation
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -36,10 +36,18 @@ jobs:
       - name: Format modified UI files
         run: |
           dart format lib/core/theme/visual_style_mode.dart lib/core/theme/visual_style_theme.dart lib/core/theme/visual_style_widgets.dart lib/providers/theme_provider.dart lib/app.dart lib/modules/settings/settings_page.dart lib/modules/login/login_page.dart lib/modules/search/search_page.dart lib/modules/search/hot_search_board_card.dart lib/modules/library/library_page.dart lib/widgets/md3e_transport_row.dart lib/modules/discover/discover_page.dart lib/widgets/player_playlist_view.dart lib/widgets/sliding_segmented_control.dart lib/widgets/song_list_item.dart lib/modules/user/user_center_page.dart lib/modules/user/favorites_page.dart lib/modules/personal_fm/personal_fm_section.dart lib/core/layout/responsive_layout.dart test/core/theme/visual_styles_test.dart test/providers/theme_provider_nav_label_behavior_test.dart
+      - name: Format lyric bridge source and regression tests
+        run: |
+          dart format lib/modules/player/original_lyrics_webview.dart lib/modules/player/original_lyrics_server.dart lib/modules/player/stage_lyrics_view.dart lib/modules/player/additional_lyric_stages.dart lib/widgets/md3_lyric_preferences.dart lib/widgets/md3_lyric_preferences_panel.dart test/modules/player/original_lyrics_bridge_test.dart test/modules/player/lyric_stage_modes_test.dart test/modules/player/lyric_stage_text_planner_test.dart
       - name: Analyze Dart code
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
       - name: Theme and login regression tests
-        run: flutter test --reporter expanded test/core/theme/visual_styles_test.dart test/modules/login/login_page_test.dart test/providers/theme_provider_nav_label_behavior_test.dart
+        run: flutter test --reporter expanded test/core/theme/visual_styles_test.dart test/modules/login/login_page_test.dart test/providers/theme_provider_nav_label_behavior_test.dart test/modules/player/original_lyrics_bridge_test.dart test/modules/player/lyric_stage_modes_test.dart test/modules/player/lyric_stage_text_planner_test.dart
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build original offline visualizer assets
+        run: node scripts/folia_stage/build.mjs
       - name: Compile Android debug APK once
         run: flutter build apk --debug --flavor standard --split-per-abi --target-platform android-arm64
       - name: Upload compiled APK

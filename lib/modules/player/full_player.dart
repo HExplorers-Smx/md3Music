@@ -2189,6 +2189,10 @@ class _FullPlayerState extends State<FullPlayer>
                         : RepaintBoundary(
                             child: StageLyricsView(
                               isPlaying: playerProvider.isPlaying,
+                              songTitle: currentSong.title,
+                              songArtist: currentSong.artist,
+                              songAlbum: currentSong.album,
+                              coverUrl: currentSong.artworkUri,
                               lyrics: _lyrics,
                               parsedLyrics: _lyricMetadata,
                               position: Duration.zero,
@@ -2589,6 +2593,10 @@ class _FullPlayerState extends State<FullPlayer>
                                     : RepaintBoundary(
                                         child: StageLyricsView(
                               isPlaying: playerProvider.isPlaying,
+                              songTitle: currentSong.title,
+                              songArtist: currentSong.artist,
+                              songAlbum: currentSong.album,
+                              coverUrl: currentSong.artworkUri,
                                           lyrics: _lyrics,
                                           parsedLyrics: _lyricMetadata,
                                           position: Duration.zero,
@@ -2965,6 +2973,10 @@ class _FullPlayerState extends State<FullPlayer>
                                     : RepaintBoundary(
                                         child: StageLyricsView(
                               isPlaying: playerProvider.isPlaying,
+                              songTitle: currentSong.title,
+                              songArtist: currentSong.artist,
+                              songAlbum: currentSong.album,
+                              coverUrl: currentSong.artworkUri,
                                           lyrics: _lyrics,
                                           parsedLyrics: _lyricMetadata,
                                           position: Duration.zero,

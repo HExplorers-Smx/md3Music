@@ -8,6 +8,7 @@ import '../../widgets/apple_lyrics/models/lyric_line.dart';
 import '../../widgets/md3_lyric_preferences.dart';
 import 'lyrics_view.dart';
 import 'additional_lyric_stages.dart';
+import 'original_lyrics_webview.dart';
 
 // Native lyric stages share the existing timeline and audio position.
 // Source and license acknowledgements: docs/lyrics-animation-attribution.md.
@@ -22,6 +23,7 @@ class StageLyricsView extends StatelessWidget {
     required this.onSeek,
     required this.doubleTapToJump,
     required this.isPlaying,
+    this.songTitle, this.songArtist, this.songAlbum, this.coverUrl,
   });
 
   final String lyrics;
@@ -32,6 +34,7 @@ class StageLyricsView extends StatelessWidget {
   final ValueChanged<Duration> onSeek;
   final bool doubleTapToJump;
   final bool isPlaying;
+  final String? songTitle, songArtist, songAlbum, coverUrl;
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
@@ -52,7 +55,7 @@ class StageLyricsView extends StatelessWidget {
               doubleTapToJump: doubleTapToJump,
             );
           }
-          return AnimatedLyricStage(
+          final native = AnimatedLyricStage(
             lines: lines,
             mode: mode,
             position: position,
@@ -61,6 +64,20 @@ class StageLyricsView extends StatelessWidget {
             onSeek: onSeek,
             isPlaying: isPlaying,
             doubleTapToJump: doubleTapToJump,
+          );
+          return OriginalLyricsWebHost(
+            lines: lines,
+            mode: mode,
+            position: position,
+            positionListenable: positionListenable,
+            adaptPosition: adaptPosition,
+            isPlaying: isPlaying,
+            onSeek: onSeek,
+            fallback: native,
+            songTitle: songTitle,
+            songArtist: songArtist,
+            songAlbum: songAlbum,
+            coverUrl: coverUrl,
           );
         },
       );
