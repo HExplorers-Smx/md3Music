@@ -50,7 +50,19 @@ class Md3LyricPreferencesPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.auto_awesome_motion_outlined),
+                title: const Text('歌词演出'),
+                subtitle: Text(switch (prefs.stageMode) {
+                  Md3LyricStageMode.original => '原版滚动歌词',
+                  Md3LyricStageMode.glow => '流光 · 逐词光效',
+                  Md3LyricStageMode.partita => '云阶 · 错落排版',
+                }),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+                onTap: () => _showStagePicker(context, prefs),
+              ),
+              const Divider(height: 20),
               // 字号滑块
               Text('字号：${prefs.fontSize.round()} px'),
               // tv: TV 构建换 RemoteSlider——M3ESlider 自带 Focus 会吞四方向键
@@ -143,7 +155,52 @@ class Md3LyricPreferencesPanel extends StatelessWidget {
     );
   }
 
-  /// 字重数值 → 中文标签。
+  void _showStagePicker(BuildContext context, Md3LyricPreferences prefs) {
+    showM3EModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('歌词演出', style: Theme.of(ctx).textTheme.titleMedium),
+              ),
+            ),
+            for (final mode in Md3LyricStageMode.values)
+              ListTile(
+                leading: Icon(
+                  prefs.stageMode == mode
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  color: Theme.of(ctx).colorScheme.primary,
+                ),
+                title: Text(switch (mode) {
+                  Md3LyricStageMode.original => '原版滚动歌词',
+                  Md3LyricStageMode.glow => '流光',
+                  Md3LyricStageMode.partita => '云阶',
+                }),
+                subtitle: Text(switch (mode) {
+                  Md3LyricStageMode.original => '保留原来的滚动与逐行定位',
+                  Md3LyricStageMode.glow => '逐字渐亮、柔和辉光、上下句衔接',
+                  Md3LyricStageMode.partita => '多行错落排版、按原始时间高亮',
+                }),
+                onTap: () {
+                  prefs.setStageMode(mode);
+                  Navigator.of(ctx).pop();
+                },
+              ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 字重数值 → 中文标签.
   String _fontWeightLabel(int value) {
     switch (value) {
       case 300:

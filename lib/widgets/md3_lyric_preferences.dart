@@ -19,6 +19,9 @@ enum Md3LyricFontSource { system, bundled, custom }
 /// MD3 歌词副行显示模式：翻译或罗马音。
 enum Md3LyricDisplayMode { translation, roma }
 
+/// Available native lyric stages. Persisted by name.
+enum Md3LyricStageMode { original, glow, partita }
+
 /// MD3 风格播放页的歌词显示偏好（字号 + 行间距 + 字体）。
 ///
 /// 与 `LyricPreferences`（Apple Music 风格播放页）完全独立的另一份配置：
@@ -80,6 +83,7 @@ class Md3LyricPreferences extends ChangeNotifier {
   static const String _keyShowAuxiliary = 'md3_lyric_show_auxiliary';
   static const String _keyDisplayMode = 'md3_lyric_display_mode';
   static const String _keyLineBalance = 'md3_lyric_line_balance';
+  static const String _keyStageMode = 'md3_lyric_stage_mode';
 
   // ============== 当前值 ==============
 
@@ -91,6 +95,7 @@ class Md3LyricPreferences extends ChangeNotifier {
   // 平衡行换行默认关闭：保持歌词的原始自动换行行为。
   bool _lineBalance = false;
   Md3LyricDisplayMode _displayMode = Md3LyricDisplayMode.translation;
+  Md3LyricStageMode _stageMode = Md3LyricStageMode.original;
   String? _customFontPath;
   Color? _customTextColor;
   // 运行时加载成功后填充的 family（仅 custom 模式且加载成功时非 null）
@@ -119,6 +124,7 @@ class Md3LyricPreferences extends ChangeNotifier {
   /// 平衡行换行是否开启（默认关闭）；关闭时退回 Text 的自动换行。
   bool get lineBalance => _lineBalance;
   Md3LyricDisplayMode get displayMode => _displayMode;
+  Md3LyricStageMode get stageMode => _stageMode;
   String? get customFontPath => _customFontPath;
   Color? get customTextColor => _customTextColor;
 
@@ -164,6 +170,10 @@ class Md3LyricPreferences extends ChangeNotifier {
     _showAuxiliary = prefs.getBool(_keyShowAuxiliary) ?? true;
     _lineBalance = prefs.getBool(_keyLineBalance) ?? false;
     _displayMode = _displayModeFromName(prefs.getString(_keyDisplayMode));
+    _stageMode = Md3LyricStageMode.values.firstWhere(
+      (value) => value.name == prefs.getString(_keyStageMode),
+      orElse: () => Md3LyricStageMode.original,
+    );
     _customFontPath = prefs.getString(_keyCustomFontPath);
     final colorValue = prefs.getInt(_keyCustomTextColor);
     _customTextColor = colorValue == null ? null : Color(colorValue);
@@ -241,7 +251,15 @@ class Md3LyricPreferences extends ChangeNotifier {
     await prefs.setString(_keyDisplayMode, mode.name);
   }
 
-  /// 设置自定义字体文件路径并立即尝试加载注册。
+  Future<void> setStageMode(Md3LyricStageMode mode) async {
+    if (_stageMode == mode) return;
+    _stageMode = mode;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyStageMode, mode.name);
+  }
+
+  /// 设置自定义字体文件路径并立即尝试加载注册.
   Future<void> setCustomFontPath(String? path) async {
     if (_customFontPath == path) return;
     _customFontPath = path;
@@ -277,6 +295,7 @@ class Md3LyricPreferences extends ChangeNotifier {
     _showAuxiliary = true;
     _lineBalance = false;
     _displayMode = Md3LyricDisplayMode.translation;
+    _stageMode = Md3LyricStageMode.original;
     _customFontPath = null;
     _customTextColor = null;
     _loadedCustomFontFamily = null;
@@ -289,6 +308,7 @@ class Md3LyricPreferences extends ChangeNotifier {
     await prefs.remove(_keyShowAuxiliary);
     await prefs.remove(_keyLineBalance);
     await prefs.remove(_keyDisplayMode);
+    await prefs.remove(_keyStageMode);
     await prefs.remove(_keyCustomFontPath);
     await prefs.remove(_keyCustomTextColor);
   }

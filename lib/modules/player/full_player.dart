@@ -73,6 +73,7 @@ import 'player_volume_state.dart';
 import 'player_wide_pane.dart';
 import 'playlist_swipe_driver.dart';
 import '../../widgets/apple_lyrics/parsers/lyric_parser_chain.dart';
+import 'stage_lyrics_view.dart';
 import '../../widgets/apple_lyrics/layout/lyric_preferences.dart';
 import '../../widgets/apple_lyrics/utils/lyric_credit_filter.dart';
 import 'package:md3music/widgets/apple_lyrics/models/lyric_line.dart';
@@ -2186,7 +2187,8 @@ class _FullPlayerState extends State<FullPlayer>
                         // P0: 歌词时间只订阅 positionNotifier（高频 200ms），
                         // 不再因 positionStream 触发整页重建
                         : RepaintBoundary(
-                            child: LyricsView(
+                            child: StageLyricsView(
+                              isPlaying: playerProvider.isPlaying,
                               lyrics: _lyrics,
                               parsedLyrics: _lyricMetadata,
                               position: Duration.zero,
@@ -2585,7 +2587,8 @@ class _FullPlayerState extends State<FullPlayer>
                                       )
                                     // P0: 歌词时间只订阅 positionNotifier（高频 200ms）
                                     : RepaintBoundary(
-                                        child: LyricsView(
+                                        child: StageLyricsView(
+                              isPlaying: playerProvider.isPlaying,
                                           lyrics: _lyrics,
                                           parsedLyrics: _lyricMetadata,
                                           position: Duration.zero,
@@ -2960,7 +2963,8 @@ class _FullPlayerState extends State<FullPlayer>
                                       )
                                     // P0: 歌词时间只订阅 positionNotifier（高频 200ms）
                                     : RepaintBoundary(
-                                        child: LyricsView(
+                                        child: StageLyricsView(
+                              isPlaying: playerProvider.isPlaying,
                                           lyrics: _lyrics,
                                           parsedLyrics: _lyricMetadata,
                                           position: Duration.zero,
