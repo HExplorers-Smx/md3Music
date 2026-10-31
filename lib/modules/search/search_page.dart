@@ -1325,7 +1325,7 @@ class _SearchAlbumCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _coverImage(colorScheme),
+                child: _coverImage(context, colorScheme),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -1373,7 +1373,7 @@ class _SearchAlbumCard extends StatelessWidget {
     );
   }
 
-  Widget _coverImage(ColorScheme colorScheme) {
+  Widget _coverImage(BuildContext context, ColorScheme colorScheme) {
     final Widget image = artworkUri != null
         ? CachedNetworkImage(
             imageUrl: artworkUri!,

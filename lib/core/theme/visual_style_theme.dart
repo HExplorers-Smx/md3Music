@@ -39,7 +39,7 @@ class VisualTokens extends ThemeExtension<VisualTokens> {
 
   @override
   VisualTokens lerp(ThemeExtension<VisualTokens>? other, double t) {
-    if (other == null) return this;
+    if (other is! VisualTokens) return this;
     return VisualTokens(
       mode: t < 0.5 ? mode : other.mode,
       corner: corner + (other.corner - corner) * t,

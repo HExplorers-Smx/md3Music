@@ -1,9 +1,6 @@
 name: Three-style UI validation (single run)
 
 on:
-  push:
-    branches:
-      - ui/three-style-overhaul
   workflow_dispatch:
 
 permissions:
