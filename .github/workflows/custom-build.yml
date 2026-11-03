@@ -1,0 +1,321 @@
+name: MD3Music 自选打包
+
+# Manual-only selector, adapted to the platforms this repository supports.
+on:
+  workflow_dispatch:
+    inputs:
+      build_android:
+        description: '构建 Android'
+        type: boolean
+        required: true
+        default: true
+      build_windows:
+        description: '构建 Windows x64 便携 ZIP'
+        type: boolean
+        required: true
+        default: false
+      android_variant:
+        description: 'Android 版本'
+        type: choice
+        required: true
+        default: standard
+        options: [standard, depth3d, tv, apple-music]
+      android_format:
+        description: 'Android 产物'
+        type: choice
+        required: true
+        default: apk-split
+        options: [apk-split, apk-universal, aab]
+      android_abi:
+        description: 'CPU 架构 (all=arm64/arm32/x86_64)'
+        type: choice
+        required: true
+        default: arm64
+        options: [arm64, arm32, x64, all]
+      android_mode:
+        description: 'Android 编译模式 (AAB 仅 release)'
+        type: choice
+        required: true
+        default: release
+        options: [release, debug]
+      android_renderer:
+        description: 'Flutter 图形引擎'
+        type: choice
+        required: true
+        default: skia
+        options: [skia, impeller]
+      original_lyrics:
+        description: '加入原版 WebGL 歌词资源 (实验性)'
+        type: boolean
+        required: true
+        default: false
+      run_checks:
+        description: '运行 Flutter analyze / 可用专项测试'
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: md3-custom-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: 检查所选平台
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require at least one platform
+        shell: bash
+        env:
+          ANDROID: ${{ inputs.build_android }}
+          WINDOWS: ${{ inputs.build_windows }}
+        run: |
+          if [[ "$ANDROID" != "true" && "$WINDOWS" != "true" ]]; then
+            echo "::error::至少勾选 Android 或 Windows。"
+            exit 1
+          fi
+
+  android:
+    name: Android / ${{ inputs.android_variant }} / ${{ inputs.android_abi }}
+    needs: preflight
+    if: ${{ inputs.build_android }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      ANDROID_VARIANT: ${{ inputs.android_variant }}
+      ANDROID_FORMAT: ${{ inputs.android_format }}
+      ANDROID_ABI: ${{ inputs.android_abi }}
+      ANDROID_MODE: ${{ inputs.android_mode }}
+      ANDROID_RENDERER: ${{ inputs.android_renderer }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Android selection
+        run: bash scripts/ci/build-android-selected.sh --check
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install "cmdline-tools;latest" "platforms;android-36" "build-tools;36.0.0" "ndk;28.2.13676358" "cmake;3.22.1"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: md3-gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            md3-gradle-${{ runner.os }}-
+
+      - name: Resolve Dart packages
+        run: flutter pub get
+
+      - name: Flutter static analysis
+        if: ${{ inputs.run_checks }}
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run available UI/lyrics regression tests
+        if: ${{ inputs.run_checks }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tests=()
+          for file in test/modules/player/original_lyrics_bridge_test.dart test/modules/player/lyric_stage_modes_test.dart test/modules/player/lyric_stage_text_planner_test.dart test/core/theme/visual_styles_test.dart; do
+            if [[ -f "$file" ]]; then tests+=("$file"); fi
+          done
+          if [[ "${#tests[@]}" -gt 0 ]]; then
+            flutter test --reporter expanded "${tests[@]}"
+          else
+            echo "当前分支没有专项测试，跳过。"
+          fi
+
+      - name: Set up Node 24 for original lyrics
+        if: ${{ inputs.original_lyrics }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Build offline original visualizer (opt-in)
+        if: ${{ inputs.original_lyrics }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/folia_stage/build.mjs ]]; then
+            echo "::error::选定分支无原版歌词构建脚本，请切换开发分支或关闭该选项。"
+            exit 1
+          fi
+          node scripts/folia_stage/build.mjs
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("assets/web/folia_stage_ready.json").read_text())
+          assert data.get("available") is True
+          assert data.get("files") and all((Path("assets/web") / p).is_file() for p in data["files"])
+          PY
+
+      - name: Configure optional release signature
+        if: ${{ inputs.android_mode == 'release' }}
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$KEYSTORE_B64" ]]; then
+            echo "::warning::未设置 release keystore，Gradle 将退回 debug 签名，不能覆盖其他签名的安装包。"
+            exit 0
+          fi
+          if [[ -z "$STORE_PASSWORD" || -z "$KEY_PASSWORD" || -z "$KEY_ALIAS" ]]; then
+            echo "::error::已设置 keystore，但签名 Secrets 不完整。"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > android/app/release.keystore
+          {
+            printf 'storeFile=release.keystore\n'
+            printf 'storePassword=%s\n' "$STORE_PASSWORD"
+            printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+          } > android/keystore.properties
+          chmod 600 android/keystore.properties android/app/release.keystore
+
+      - name: Build and stage Android outputs
+        run: bash scripts/ci/build-android-selected.sh
+
+      - name: Upload arm64-v8a APK
+        if: ${{ inputs.android_format == 'apk-split' && (inputs.android_abi == 'arm64' || inputs.android_abi == 'all') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-${{ inputs.android_variant }}-${{ inputs.android_mode }}-arm64-v8a
+          path: dist/android/arm64-v8a/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload armeabi-v7a APK
+        if: ${{ inputs.android_format == 'apk-split' && (inputs.android_abi == 'arm32' || inputs.android_abi == 'all') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-${{ inputs.android_variant }}-${{ inputs.android_mode }}-armeabi-v7a
+          path: dist/android/armeabi-v7a/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload x86_64 APK
+        if: ${{ inputs.android_format == 'apk-split' && (inputs.android_abi == 'x64' || inputs.android_abi == 'all') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-${{ inputs.android_variant }}-${{ inputs.android_mode }}-x86_64
+          path: dist/android/x86_64/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload universal APK
+        if: ${{ inputs.android_format == 'apk-universal' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-${{ inputs.android_variant }}-${{ inputs.android_mode }}-universal
+          path: dist/android/universal/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Android AAB
+        if: ${{ inputs.android_format == 'aab' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-${{ inputs.android_variant }}-release-AAB
+          path: dist/android/bundle/*.aab
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-Android-SHA256
+          path: dist/android/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows x64 / 便携 ZIP
+    needs: preflight
+    if: ${{ inputs.build_windows }}
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Build Rust Windows DLL
+        working-directory: kugou_api_server/rust
+        run: cargo build --release
+
+      - name: Flutter dependencies
+        run: flutter pub get
+
+      - name: Flutter analysis
+        if: ${{ inputs.run_checks }}
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Flutter Windows x64 release
+        run: flutter build windows --release
+
+      - name: Bundle Rust DLL
+        shell: pwsh
+        run: Copy-Item kugou_api_server/rust/target/release/kugou_server.dll build/windows/x64/runner/Release/ -Force
+
+      - name: Bundle Visual C++ runtime
+        shell: pwsh
+        run: |
+          $vsWhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+          $vsRoot = @(& $vsWhere -latest -products * -property installationPath)[0]
+          if (-not $vsRoot) { throw '未能定位 Visual Studio' }
+          $crtDir = Get-ChildItem (Join-Path $vsRoot 'VC\Redist\MSVC') -Directory -ErrorAction SilentlyContinue |
+            ForEach-Object { Get-ChildItem (Join-Path $_.FullName 'x64') -Directory -Filter 'Microsoft.VC*.CRT' -ErrorAction SilentlyContinue } |
+            Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $crtDir) { throw '未找到 VC++ CRT' }
+          $dlls = @(Get-ChildItem (Join-Path $crtDir.FullName '*.dll'))
+          if (-not $dlls.Count) { throw 'CRT 目录为空' }
+          Copy-Item $dlls.FullName build/windows/x64/runner/Release/ -Force
+
+      - name: Package Windows portable
+        shell: pwsh
+        run: |
+          ./scripts/tasks/windows.ps1 -PackageOnly -NoPause -OutDir .
+          $files = @(Get-ChildItem -Path . -File -Filter 'md3music-windows-*.zip')
+          if (-not $files.Count) { throw '没有生成便携 ZIP' }
+          foreach ($file in $files) {
+            Write-Host "Artifact: $($file.Name)"
+            Get-FileHash $file.FullName -Algorithm SHA256 | Format-List
+          }
+
+      - name: Upload Windows portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: MD3Music-Windows-x64-portable
+          path: md3music-windows-*.zip
+          if-no-files-found: error
+          retention-days: 14
